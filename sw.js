@@ -1,52 +1,50 @@
-var GHPATH = '';
-var APP_PREFIX = 'gppwa_';
-var VERSION = 'version_002';
-var URLS = [
-  `${GHPATH}/`,
-  `${GHPATH}/index.html`,
-  `${GHPATH}/css/styles.css`,
-  `${GHPATH}/img/icon.png`,
-  `${GHPATH}/js/app.js`
+const CACHE_NAME = 'dev-coffee-site-v4'
+const assets = [
+  "/",
+  "/index.html",
+  "/css/styles.css",
+  "/js/app.js",
+  "/img/coffee1.jpg",
+  "/img/coffee2.jpg",
+  "/img/coffee3.jpg",
+  "/img/coffee4.jpg",
+  "/img/coffee5.jpg",
+  "/img/coffee6.jpg",
+  "/img/coffee7.jpg",
+  "/img/coffee8.jpg",
+  "/img/coffee9.jpg",
 ]
 
-var CACHE_NAME = APP_PREFIX + VERSION
-self.addEventListener('fetch', function (e) {
-  console.log('Fetch request : ' + e.request.url);
-  e.respondWith(
-    caches.match(e.request).then(function (request) {
-      if (request) {
-        console.log('Responding with cache : ' + e.request.url);
-        return request
-      } else {
-        console.log('File is not cached, fetching : ' + e.request.url);
-        return fetch(e.request)
-      }
+self.addEventListener("install", installEvent => {
+  installEvent.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      cache.addAll(assets)
     })
   )
 })
 
-self.addEventListener('install', function (e) {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(function (cache) {
-      console.log('Installing cache : ' + CACHE_NAME);
-      return cache.addAll(URLS)
+self.addEventListener("fetch", fetchEvent => {
+  fetchEvent.respondWith(
+    caches.match(fetchEvent.request).then(res => {
+      return res || fetch(fetchEvent.request)
     })
   )
 })
 
-self.addEventListener('activate', function (e) {
-  e.waitUntil(
-    caches.keys().then(function (keyList) {
-      var cacheWhitelist = keyList.filter(function (key) {
-        return key.indexOf(APP_PREFIX)
-      })
-      cacheWhitelist.push(CACHE_NAME);
-      return Promise.all(keyList.map(function (key, i) {
-        if (cacheWhitelist.indexOf(key) === -1) {
-          console.log('Deleting cache : ' + keyList[i] );
-          return caches.delete(keyList[i])
-        }
-      }))
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((existingCacheName) => {
+          if (existingCacheName !== CACHE_NAME) {
+            // Delete old caches
+            return caches.delete(existingCacheName);
+          }
+        })
+      );
     })
-  )
-})
+  );
+
+  // Ensure that the new service worker takes control immediately
+  event.waitUntil(self.clients.claim());
+});
