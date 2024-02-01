@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dev-coffee-site-v4'
+const CACHE_NAME = 'dev-coffee-site-v5'
 const assets = [
   "/",
   "/index.html",
